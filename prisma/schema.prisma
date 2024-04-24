@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// supabase password Tm66SYVovD3xqu3Y
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL") // uses connection pooling
+  // directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+}
+
+model User {
+  id        String      @id @default(uuid())
+  phone     String       @unique
+  name      String
+  password     String
+  location      Json?
+  orders       Order[]
+  favoriteStore     UserToStore[]
+}
+
+model Store {
+  id      String     @id @default(uuid())
+  storeId   String     @unique
+  name    String 
+  location  Json
+  payment   Json
+  password     String
+  orders     Order[]
+  items     ItemsToStore[]
+  users      UserToStore[]
+}
+
+model Order {
+  id    String     @id @default(uuid())
+  store   Store     @relation(fields: [storeId], references: [id])
+  storeId    String
+  orderItems     ItemsToOrder[]
+  user     User       @relation(fields: [userId], references: [id])
+  userId    String    
+  placedTime   DateTime    @default(now())
+  takeawayTime    DateTime
+  orderNo        Int
+}
+
+model Items {
+  id    String    @id @default(uuid())
+  name    String     @unique
+  price   Int
+  stock     Int
+  store      ItemsToStore[]
+  order     ItemsToOrder[]
+}
+
+model ItemsToOrder {
+  id        String    @id @default(uuid())
+  orderId   String
+  itemId    String
+  quantity  Int
+  order     Order  @relation(fields: [orderId], references: [id])
+  item      Items   @relation(fields: [itemId], references: [id])
+}
+
+model ItemsToStore {
+  id     String      @id @default(uuid())
+  itemId      String
+  storeUuid     String
+  item       Items      @relation(fields: [itemId], references: [id])
+  store      Store      @relation(fields: [storeUuid], references: [id])
+}
+
+model UserToStore {
+  id      String      @id @default(uuid())
+  userId     String
+  storeUuid     String
+  user     User       @relation(fields: [userId], references: [id])
+  store    Store      @relation(fields: [storeUuid], references: [id])   
+}
+
